@@ -178,7 +178,7 @@ int main(int argc, char* argv[])
     int i;
     vector<vector<Centroid>> history;
 
-    if (open_urg_sensor(&urg, argc, argv) < 0) {
+    if (open_urg_sensor(&urg) < 0) {
         return 1;
     }
 
@@ -188,10 +188,8 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    // \~japanese データ取得
     // \~english Gets measurement data
 #if 1
-    // \~japanese データの取得範囲を変更する場合
     // \~english Case where the measurement range (start/end steps) is defined
     urg_set_scanning_parameter(&urg,
         urg_deg2step(&urg, -30),
@@ -212,7 +210,6 @@ int main(int argc, char* argv[])
         print_data(&urg, data, n, time_stamp, history);
     }
 
-    // \~japanese 切断
     // \~english Disconnects
     free(data);
     urg_close(&urg);
