@@ -131,13 +131,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="motion_detection.cpp" />
     <ClCompile Include="open_urg_sensor.cpp" />
     <ClCompile Include="ProjectHexogon.cpp" />
     <ClCompile Include="kmeans.cpp" />
+    <ClCompile Include="main.cpp" />
     <ClCompile Include="test.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="kmeans.h" />
+    <ClInclude Include="motion_detection.h" />
     <ClInclude Include="open_urg_sensor.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
