@@ -41,10 +41,17 @@ vector<Point> SensorPoint::get_xy_coordinates(urg_t* urg, long data[], int data_
 }
 
 void SensorPoint::print_xy_coordinates(vector<Point>& all_points) {
-    for (int i = 0; i < all_points.size(); i++)
+    /*for (int i = 0; i < all_points.size(); i++)
     {
         cout << "(" << all_points[i].getVal(0) << ", " << all_points[i].getVal(1) << "), ";
-    }
+    }*/
+}
+
+void SensorPoint::print_cluster_assignment(vector<Point>& all_points) {
+    for (int i = 0; i < all_points.size(); i++)
+    {
+		cout << "Point " << i << ": (" << all_points[i].getVal(0) << ", " << all_points[i].getVal(1) << ") -> Cluster " << all_points[i].getCluster() << endl;
+	}
 }
 
 void SensorPoint::print_data(urg_t* urg, long data[], int data_n, long time_stamp, vector<vector<Centroid>>& history)
@@ -154,8 +161,7 @@ void SensorPoint::print_data(urg_t* urg, long data[], int data_n, long time_stam
     }
 }
 
-void SensorPoint::run_motion_detection(urg_t* urg, vector<vector<Centroid>>& history, void (SensorPoint::* data_function)(urg_t*, long[], int, long, vector<vector<Centroid>>&))
-{
+void SensorPoint::run_motion_detection(urg_t* urg, vector<vector<Centroid>>& history, void (SensorPoint::* data_function)(urg_t*, long[], int, long, vector<vector<Centroid>>&), void (SensorPoint::* print_function)(vector<Point>&)) {
     enum {
         CAPTURE_TIMES = 9999,
     };
@@ -188,7 +194,11 @@ void SensorPoint::run_motion_detection(urg_t* urg, vector<vector<Centroid>>& his
         }
         // Call data_function on this instance of SensorPoint
         (this->*data_function)(urg, data, n, time_stamp, history);
+        // Get XY coordinates
+        vector<Point> all_points = get_xy_coordinates(urg, data, n);
 
+        // Call the appropriate print function
+        (this->*print_function)(all_points);
     }
 
     // Disconnects

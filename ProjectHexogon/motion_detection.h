@@ -20,7 +20,8 @@ public:
 
     void bubbleSort(vector<Centroid>& centroids);
     void print_data(urg_t* urg, long data[], int data_n, long time_stamp, vector<vector<Centroid>>& history);
-    void run_motion_detection(urg_t* urg, vector<vector<Centroid>>& history, void (SensorPoint::* data_function)(urg_t*, long[], int, long, vector<vector<Centroid>>&));
+    void run_motion_detection(urg_t* urg, vector<vector<Centroid>>& history, void (SensorPoint::* data_function)(urg_t*, long[], int, long, vector<vector<Centroid>>&), void (SensorPoint::* print_function)(vector<Point>&));
     void print_xy_coordinates(vector<Point>& all_points);
     vector<Point> get_xy_coordinates(urg_t* urg, long data[], int data_n);
+    void print_cluster_assignment(vector<Point>& all_points);
 };

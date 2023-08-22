@@ -10,7 +10,7 @@ int run()
         return 1;
     }
 
-    sp.run_motion_detection(&urg, history, &SensorPoint::print_data);
+    sp.run_motion_detection(&urg, history, &SensorPoint::print_data, &SensorPoint::print_xy_coordinates);
 
     //sp.print_xy_coordinates();
 
