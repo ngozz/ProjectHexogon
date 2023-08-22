@@ -1,7 +1,6 @@
 #include "motion_detection.h"
 
-
-void bubbleSort(vector<Centroid>& centroids) {
+void SensorPoint::bubbleSort(vector<Centroid>& centroids) {
     for (int i = 0; i < centroids.size() - 1; i++) {
         for (int j = 0; j < centroids.size() - i - 1; j++) {
             if (centroids[j].x > centroids[j + 1].x) {
@@ -11,22 +10,13 @@ void bubbleSort(vector<Centroid>& centroids) {
     }
 }
 
-void print_data(urg_t* urg, long data[], int data_n, long time_stamp, vector<vector<Centroid>>& history)
-{
-    (void)time_stamp;
-
+vector<Point> SensorPoint::get_xy_coordinates(urg_t* urg, long data[], int data_n) {
     int i;
     long min_distance;
     long max_distance;
-
-    // Set the number of clusters
-    int K = 1;
-
-    // Create a vector of Point objects
     vector<Point> all_points;
     int pointId = 0;
 
-    // Prints the X-Y coordinates for all the measurement points
     urg_distance_min_max(urg, &min_distance, &max_distance);
     for (i = 0; i < data_n; ++i) {
         long l = data[i];
@@ -46,6 +36,32 @@ void print_data(urg_t* urg, long data[], int data_n, long time_stamp, vector<vec
         all_points.push_back(point);
         pointId++;
     }
+
+    return all_points;
+}
+
+void SensorPoint::print_xy_coordinates(vector<Point>& all_points) {
+    for (int i = 0; i < all_points.size(); i++)
+    {
+        cout << "(" << all_points[i].getVal(0) << ", " << all_points[i].getVal(1) << "), ";
+    }
+}
+
+void SensorPoint::print_data(urg_t* urg, long data[], int data_n, long time_stamp, vector<vector<Centroid>>& history)
+{
+    // Get the X-Y coordinates for all the measurement points
+    vector<Point> all_points = get_xy_coordinates(urg, data, data_n);
+
+    // Print the X-Y coordinates for all the measurement points
+    //print_xy_coordinates(all_points);
+
+    (void)time_stamp;
+
+    // Set the number of clusters
+    int K = 1;
+
+    // Create a vector of Point objects
+    int pointId = 0;
 
     // Set a fixed seed (starting point) for the random number generator
     srand(2222);
@@ -76,10 +92,10 @@ void print_data(urg_t* urg, long data[], int data_n, long time_stamp, vector<vec
 
     bubbleSort(current_centroids); //Sort the current_centroids vector
 
-    // Print the sorted current_centroids vector
-    for (int i = 0; i < current_centroids.size(); i++) {
-        cout << "Centroid " << i + 1 << ": (" << current_centroids[i].x << ", " << current_centroids[i].y << ")" << endl;
-    }
+    //// Print the sorted current_centroids vector
+    //for (int i = 0; i < current_centroids.size(); i++) {
+    //    cout << "Centroid " << i + 1 << ": (" << current_centroids[i].x << ", " << current_centroids[i].y << ")" << endl;
+    //}
 
     // Add the current_centroids vector to the history vector
     history.push_back(current_centroids);
@@ -138,7 +154,7 @@ void print_data(urg_t* urg, long data[], int data_n, long time_stamp, vector<vec
     }
 }
 
-void run_motion_detection(urg_t* urg, vector<vector<Centroid>>& history)
+void SensorPoint::run_motion_detection(urg_t* urg, vector<vector<Centroid>>& history, void (SensorPoint::* data_function)(urg_t*, long[], int, long, vector<vector<Centroid>>&))
 {
     enum {
         CAPTURE_TIMES = 9999,
@@ -170,7 +186,9 @@ void run_motion_detection(urg_t* urg, vector<vector<Centroid>>& history)
             free(data);
             return;
         }
-        print_data(urg, data, n, time_stamp, history);
+        // Call data_function on this instance of SensorPoint
+        (this->*data_function)(urg, data, n, time_stamp, history);
+
     }
 
     // Disconnects

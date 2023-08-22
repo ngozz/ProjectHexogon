@@ -1,15 +1,19 @@
 #include "motion_detection.h"
 
-int main()
+int run()
 {
+    SensorPoint sp;
     urg_t urg;
-    vector<vector<Centroid>> history;
+    vector<vector<SensorPoint::Centroid>> history;
 
     if (open_urg_sensor(&urg) < 0) {
         return 1;
     }
 
-    run_motion_detection(&urg, history);
+    sp.run_motion_detection(&urg, history, &SensorPoint::print_data);
+
+    //sp.print_xy_coordinates();
+
 
 #if defined(URG_MSC)
     getchar();
@@ -18,4 +22,10 @@ int main()
     urg_close(&urg);
 
     return 0;
+}
+
+
+int main() 
+{
+    run();
 }
