@@ -1,22 +1,6 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
-﻿#include "urg_sensor.h"
-#include "urg_utils.h"
-#include "open_urg_sensor.h"
-#include <stdlib.h>
-#include <stdio.h>
-#include <corecrt_math.h>
-#include "dbscan.h"
-#include "kmeans.h"
-#include <sstream>
+#include "motion_detection.h"
 
-struct Centroid
-{
-    double x;
-    double y;
-};
-
-void bubbleSort(vector<Centroid>& centroids) {
+void SensorPoint::bubbleSort(vector<Centroid>& centroids) {
     for (int i = 0; i < centroids.size() - 1; i++) {
         for (int j = 0; j < centroids.size() - i - 1; j++) {
             if (centroids[j].x > centroids[j + 1].x) {
@@ -26,32 +10,13 @@ void bubbleSort(vector<Centroid>& centroids) {
     }
 }
 
-static void print_data(urg_t* urg, long data[], int data_n, long time_stamp, vector<vector<Centroid>>& history)
-{
-#if 0
-    int front_index;
-
-    (void)data_n;
-
-    // \~english Shows only the front step
-    front_index = urg_step2index(urg, 0);
-    printf("%ld [mm], (%ld [msec])\n", data[front_index], time_stamp);
-#endif
-
-    (void)time_stamp;
-
+vector<Point> SensorPoint::get_xy_coordinates(urg_t* urg, long data[], int data_n) {
     int i;
     long min_distance;
     long max_distance;
-
-    // Create a vector of Point objects
     vector<Point> all_points;
     int pointId = 0;
 
-    // Create a vector of DB Point objects
-    vector<DBPoint> db_points;
-
-    // \~english Prints the X-Y coordinates for all the measurement points
     urg_distance_min_max(urg, &min_distance, &max_distance);
     for (i = 0; i < data_n; ++i) {
         long l = data[i];
@@ -65,46 +30,45 @@ static void print_data(urg_t* urg, long data[], int data_n, long time_stamp, vec
         radian = urg_index2rad(urg, i);
         x = (long)(l * sin(radian));
         y = (long)(l * cos(radian));
-        
-        /*stringstream ss;
+        stringstream ss;
         ss << x << " " << y;
         Point point(pointId, ss.str());
-        all_points.push_back(point);*/
-
-        DBPoint dbpoint = {x, y};
-        db_points.push_back(dbpoint);
-
+        all_points.push_back(point);
         pointId++;
     }
 
-    // Run the DBSCAN algorithm on your data
-    double eps = 10; // The maximum distance between two samples for one to be considered as in the neighborhood of the other
-    int min_pts = 10; // The number of samples in a neighborhood for a point to be considered as a core point
-    vector<vector<DBPoint>> clusters = dbscan(db_points, eps, min_pts);
-    vector<DBPoint> centroids = get_centroids(clusters);
+    return all_points;
+}
 
-    // Output all points coordinates and cluster labels
-    std::cout << "all points:" << std::endl;
-    for (int i = 0; i < db_points.size(); i++) {
-        std::cout << "(" << db_points[i].x << ", " << db_points[i].y << ") - cluster ";
-        for (int j = 0; j < clusters.size(); j++) {
-            if (std::find(clusters[j].begin(), clusters[j].end(), db_points[i]) != clusters[j].end()) {
-                std::cout << j + 1;
-                break;
-            }
-        }
-        std::cout << std::endl;
-    }
+void SensorPoint::print_xy_coordinates(vector<Point>& all_points) {
+    /*for (int i = 0; i < all_points.size(); i++)
+    {
+        cout << "(" << all_points[i].getVal(0) << ", " << all_points[i].getVal(1) << "), ";
+    }*/
+}
 
-    // Centroids
-    std::cout << "Centroids:" << std::endl;
-    for (auto centroid : centroids) {
-        cout << "(" << centroid.x << ", " << centroid.y << ")" << endl;
-    }
+void SensorPoint::print_cluster_assignment(vector<Point>& all_points) {
+    for (int i = 0; i < all_points.size(); i++)
+    {
+		cout << "Point " << i << ": (" << all_points[i].getVal(0) << ", " << all_points[i].getVal(1) << ") -> Cluster " << all_points[i].getCluster() << endl;
+	}
+}
 
-#if 0
+void SensorPoint::print_data(urg_t* urg, long data[], int data_n, long time_stamp, vector<vector<Centroid>>& history)
+{
+    // Get the X-Y coordinates for all the measurement points
+    vector<Point> all_points = get_xy_coordinates(urg, data, data_n);
+
+    // Print the X-Y coordinates for all the measurement points
+    //print_xy_coordinates(all_points);
+
+    (void)time_stamp;
+
     // Set the number of clusters
     int K = 1;
+
+    // Create a vector of Point objects
+    int pointId = 0;
 
     // Set a fixed seed (starting point) for the random number generator
     srand(2222);
@@ -121,7 +85,6 @@ static void print_data(urg_t* urg, long data[], int data_n, long time_stamp, vec
     }*/
 
     // Create a vector to store the coordinates of the centroids at this time step
-
     vector<Centroid> current_centroids(K);
     const vector<Cluster>& clusters = kmeans.getClusters();
 
@@ -134,12 +97,12 @@ static void print_data(urg_t* urg, long data[], int data_n, long time_stamp, vec
         current_centroids[i] = { x, y };
     }
 
-    bubbleSort(current_centroids);
+    bubbleSort(current_centroids); //Sort the current_centroids vector
 
-    // Print the sorted current_centroids vector
-    /*for (int i = 0; i < current_centroids.size(); i++) {
-        cout << "Centroid " << i + 1 << ": (" << current_centroids[i].x << ", " << current_centroids[i].y << ")" << endl;
-    }*/
+    //// Print the sorted current_centroids vector
+    //for (int i = 0; i < current_centroids.size(); i++) {
+    //    cout << "Centroid " << i + 1 << ": (" << current_centroids[i].x << ", " << current_centroids[i].y << ")" << endl;
+    //}
 
     // Add the current_centroids vector to the history vector
     history.push_back(current_centroids);
@@ -158,8 +121,6 @@ static void print_data(urg_t* urg, long data[], int data_n, long time_stamp, vec
             double dy = curr_centroids[i].y - prev_centroids[i].y;
             double n = 10;
             double m = 5;
-
-            /*cout << "Cluster " << i + 1 << " movement: (" << dx << ", " << dy << ")" << endl;*/
 
             // Calculate the distance between the current and previous positions
             double dist = sqrt(dx * dx + dy * dy);
@@ -198,66 +159,48 @@ static void print_data(urg_t* urg, long data[], int data_n, long time_stamp, vec
             }
         }
     }
-#endif
 }
 
-
-int main(int argc, char* argv[])
-{
+void SensorPoint::run_motion_detection(urg_t* urg, vector<vector<Centroid>>& history, void (SensorPoint::* data_function)(urg_t*, long[], int, long, vector<vector<Centroid>>&), void (SensorPoint::* print_function)(vector<Point>&)) {
     enum {
         CAPTURE_TIMES = 9999,
     };
-    urg_t urg;
     long* data = NULL;
     long time_stamp;
     int n;
     int i;
-    vector<vector<Centroid>> history;
 
-    if (open_urg_sensor(&urg) < 0) {
-        return 1;
-    }
-
-    data = (long*)malloc(urg_max_data_size(&urg) * sizeof(data[0]));
+    data = (long*)malloc(urg_max_data_size(urg) * sizeof(data[0]));
     if (!data) {
         perror("urg_max_index()");
-        return 1;
+        return;
     }
 
-    // \~english Gets measurement data
+    // Gets measurement data
 #if 1
-    // \~english Case where the measurement range (start/end steps) is defined
-    urg_set_scanning_parameter(&urg,
-        urg_deg2step(&urg, -10),
-        urg_deg2step(&urg, +10), 0);
+    // Case where the measurement range (start/end steps) is defined
+    urg_set_scanning_parameter(urg,
+        urg_deg2step(urg, -30),
+        urg_deg2step(urg, +30), 0);
 #endif
 
-
-    urg_start_measurement(&urg, URG_DISTANCE, URG_SCAN_INFINITY, 0, 1);
+    urg_start_measurement(urg, URG_DISTANCE, URG_SCAN_INFINITY, 0, 1);
     for (i = 0; i < CAPTURE_TIMES; ++i) {
-        n = urg_get_distance(&urg, data, &time_stamp);
+        n = urg_get_distance(urg, data, &time_stamp);
         if (n <= 0) {
-            printf("urg_get_distance: %s\n", urg_error(&urg));
+            printf("urg_get_distance: %s\n", urg_error(urg));
             free(data);
-            urg_close(&urg);
-            return 1;
+            return;
         }
-        /*printf("\n%i\n\n", i + 1);*/
-        print_data(&urg, data, n, time_stamp, history);
+        // Call data_function on this instance of SensorPoint
+        (this->*data_function)(urg, data, n, time_stamp, history);
+        // Get XY coordinates
+        vector<Point> all_points = get_xy_coordinates(urg, data, n);
+
+        // Call the appropriate print function
+        (this->*print_function)(all_points);
     }
 
-    // \~english Disconnects
+    // Disconnects
     free(data);
-    urg_close(&urg);
-
-#if defined(URG_MSC)
-    getchar();
-#endif
-    return 0;
 }
-=======
-﻿
->>>>>>> 55e1b3b9c273b7e9dbd3ad9a8fd14dc99e7e4504
-=======
-﻿
->>>>>>> 55e1b3b9c273b7e9dbd3ad9a8fd14dc99e7e4504
