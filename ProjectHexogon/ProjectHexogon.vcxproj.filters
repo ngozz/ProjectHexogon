@@ -27,12 +27,21 @@
     <ClCompile Include="kmeans.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="motion_detection.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="open_urg_sensor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="kmeans.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="motion_detection.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

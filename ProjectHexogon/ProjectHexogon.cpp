@@ -1,6 +1,4 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
-﻿#include "urg_sensor.h"
+#include "urg_sensor.h"
 #include "urg_utils.h"
 #include "open_urg_sensor.h"
 #include <stdlib.h>
@@ -255,9 +253,3 @@ int main(int argc, char* argv[])
 #endif
     return 0;
 }
-=======
-﻿
->>>>>>> 55e1b3b9c273b7e9dbd3ad9a8fd14dc99e7e4504
-=======
-﻿
->>>>>>> 55e1b3b9c273b7e9dbd3ad9a8fd14dc99e7e4504
